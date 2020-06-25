@@ -142,33 +142,33 @@ wire [dataWidth - 1:0] Mulresult;
 wire Mullast;
 
 
-floating_point_sys_adder sysMul (
-  .aclk(clk),                                  // input wire aclk
-  .s_axis_a_tvalid(dataValid),            // input wire s_axis_a_tvalid
-  .s_axis_a_tdata(weight),              // input wire [31 : 0] s_axis_a_tdata
-  .s_axis_a_tlast(dataLast),              // input wire s_axis_a_tlast
-  .s_axis_b_tvalid(dataValid),            // input wire s_axis_b_tvalid
-  .s_axis_b_tdata(featureIn),              // input wire [31 : 0] s_axis_b_tdata
-  .m_axis_result_tvalid(Mulvalid),  // output wire m_axis_result_tvalid
-  .m_axis_result_tdata(Mulresult),    // output wire [31 : 0] m_axis_result_tdata
-  .m_axis_result_tlast(Mullast)    // output wire m_axis_result_tlast
+
+mul u0 (
+	.clk    (clk),    //   input,   width = 1,    clk.clk
+	.areset (rst), //   input,   width = 1, areset.reset
+	.a      (weight),      //   input,  width = 32,      a.a
+	.b      (featureIn),      //   input,  width = 32,      b.b
+	.q      (Mulresult)       //  output,  width = 32,      q.q
 );
+
+
+
 
 wire Accvalid;
 wire [dataWidth - 1:0] Accresult;
 wire Acclast;
 
-floating_point_Sys_Acc sysAcc (
-  .aclk(clk),                                  // input wire aclk
-  .s_axis_a_tvalid(Mulvalid),            // input wire s_axis_a_tvalid
-  .s_axis_a_tdata(Mulresult),              // input wire [31 : 0] s_axis_a_tdata
-  .s_axis_a_tlast(Mullast),              // input wire s_axis_a_tlast
-  .m_axis_result_tvalid(Accvalid),  // output wire m_axis_result_tvalid
-  .m_axis_result_tdata(Accresult),    // output wire [31 : 0] m_axis_result_tdata
-  .m_axis_result_tlast(Acclast)    // output wire m_axis_result_tlast
-);
 
+	singleAcc u1 (
+		.clk    (clk),    //   input,   width = 1,    clk.clk
+		.areset (rst), //   input,   width = 1, areset.reset
+		.a      (Mulresult),      //   input,  width = 32,      a.a
+		.q      (Accresult),      //  output,  width = 32,      q.q
+		.acc    (Mulvalid)     //   input,   width = 1,    acc.acc
+	);
 
+assign Acclast = 1'b1;
+assign Accvalid = 1'b1;
 // 
 reg [dataWidth - 1:0] temResult;
 

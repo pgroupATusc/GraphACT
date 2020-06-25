@@ -310,11 +310,11 @@ columnbuffer  #(
 	.readportA1(columnbuffer_readportA1),
 	.readportA2(columnbuffer_readportA2),
 	.writeportA1(columnbuffer_writeportA1),
-	.writeportA2(0),
+	.writeportA2(32'b0),
 	.readportB1(columnbuffer_readportB1),
 	.readportB2(columnbuffer_readportB2),
 	.writeportB1(columnbuffer_writeportB1),
-	.writeportB2(0),
+	.writeportB2(32'b0),
   	.addressportA1(columnbuffer_addressportA1),
   	.addressportA2(columnbuffer_addressportA2),
   	.addressportB1(columnbuffer_addressportB1),
@@ -341,9 +341,8 @@ vectorAdd #(
 (
 	.clk(clk),
 	.rst(rst),
-	.lastin(triggerA),
+	.lastin(1'b1),
 	.lastout(),
-	.valid(1'b1),
 	.vectorIn(dataForVadderA),
 	.vectorOut(DataVectorAout)    
 );
@@ -356,9 +355,8 @@ vectorAdd #(
 (
 	.clk(clk),
 	.rst(rst),
-	.lastin(triggerB),
+	.lastin(1'b1),
 	.lastout(),
-	.valid(1'b1),
 	.vectorIn(dataForVadderB),
 	.vectorOut(DataVectorBout)    
 );

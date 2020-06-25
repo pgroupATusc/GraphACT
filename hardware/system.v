@@ -49,12 +49,13 @@ module system(
  );
 
 parameter dataWidth = 32;
-parameter pvadd = 128;
 parameter k = 1024;
-parameter psys = 32;
-parameter featureLen = 128;
+parameter psys = 24;
+parameter featureLen = 256;
 parameter pactivation = 128;
-parameter pavdd = 128;
+parameter pvadd = 256;
+parameter pavdd = 256;
+
 
 input clk;
 input rst;
@@ -108,18 +109,21 @@ generate
 	end
 endgenerate
 
+wire [dataWidth - 1:0] weight_narrow_r[0:psys - 1];
+
 genvar l;
 generate
 	 for (l = 0; l < psys - 1; l = l+1) begin : resultoutgeneration
 	 	if(l == 0) begin : firstloop
-	 		assign resultOut_narrow = resultOut[(l + 2)*dataWidth - 1:(l+1)*dataWidth] & resultOut[(l+1)*dataWidth - 1:l*dataWidth];
+	 		assign weight_narrow_r[l] = resultOut[(l + 2)*dataWidth - 1:(l+1)*dataWidth] & resultOut[(l+1)*dataWidth - 1:l*dataWidth];
 	 	end
 	 	else begin : remainingloop
-	 		assign resultOut_narrow = resultOut_narrow & resultOut[(l + 2)*dataWidth - 1:(l+1)*dataWidth];
+	 		assign weight_narrow_r[l] = weight_narrow_r[l-1] & resultOut[(l + 2)*dataWidth - 1:(l+1)*dataWidth];
 	 	end
 	 end
 endgenerate
 
+assign resultOut_narrow = weight_narrow_r[psys - 2];
 
 wire [$clog2(k) - 1:0] rowAddressConnection;
 wire [pvadd*dataWidth - 1:0] rowdataConnection;

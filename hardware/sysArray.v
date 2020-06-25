@@ -25,7 +25,7 @@ reg [dataWidth*SysDimension - 1:0] outputArray;
 wire [dataWidth*SysDimension - 1:0] weightWireArray[0:SysDimension - 1];
 wire [dataWidth*SysDimension - 1:0] featureWireArray[0:SysDimension - 1];
 
-wire [dataWidth*SysDimension - 1:0] resultWireArray[0:SysDimension - 2];
+wire [dataWidth*SysDimension - 1:0] resultWireArray[0:SysDimension - 1];
 
 
 genvar i, j;
@@ -62,7 +62,7 @@ generate
 
 			wire [dataWidth - 1:0] iresultOut;
 
-			assign iresultOut = resultWireArray[i][(j + 1)*dataWidth - 1: j * dataWidth];
+			assign resultWireArray[i][(j + 1)*dataWidth - 1: j * dataWidth] = iresultOut;
 
 			
 

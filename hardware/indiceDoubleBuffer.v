@@ -27,7 +27,7 @@ module indiceDoubleBuffer #(
 
 parameter addressWidth = $clog2(k*k/32);
 parameter dataportWidth = $clog2(k);
-parameter memorySize = addressWidth * dataportWidth;
+parameter memorySize = k*k/32 * dataportWidth;
 
 
 // define the input
@@ -59,232 +59,32 @@ output [dataportWidth - 1:0] readportB2;
 input [dataportWidth - 1:0] writeportB1;
 input [dataportWidth - 1:0] writeportB2;
 
-
-xpm_memory_tdpram #(
-  .ADDR_WIDTH_A(addressWidth),               // DECIMAL
-  .ADDR_WIDTH_B(addressWidth),               // DECIMAL
-  .AUTO_SLEEP_TIME(0),            // DECIMAL
-  .BYTE_WRITE_WIDTH_A(32),        // DECIMAL
-  .BYTE_WRITE_WIDTH_B(32),        // DECIMAL
-  .CASCADE_HEIGHT(0),             // DECIMAL
-  .CLOCKING_MODE("common_clock"), // String
-  .ECC_MODE("no_ecc"),            // String
-  .MEMORY_INIT_FILE("none"),      // String
-  .MEMORY_INIT_PARAM("0"),        // String
-  .MEMORY_OPTIMIZATION("true"),   // String
-  .MEMORY_PRIMITIVE("auto"),      // String
-  .MEMORY_SIZE(memorySize),             // DECIMAL
-  .MESSAGE_CONTROL(0),            // DECIMAL
-  .READ_DATA_WIDTH_A(dataportWidth),         // DECIMAL
-  .READ_DATA_WIDTH_B(dataportWidth),         // DECIMAL
-  .READ_LATENCY_A(2),             // DECIMAL
-  .READ_LATENCY_B(2),             // DECIMAL
-  .READ_RESET_VALUE_A("0"),       // String
-  .READ_RESET_VALUE_B("0"),       // String
-  .RST_MODE_A("SYNC"),            // String
-  .RST_MODE_B("SYNC"),            // String
-  .SIM_ASSERT_CHK(0),             // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
-  .USE_EMBEDDED_CONSTRAINT(0),    // DECIMAL
-  .USE_MEM_INIT(1),               // DECIMAL
-  .WAKEUP_TIME("disable_sleep"),  // String
-  .WRITE_DATA_WIDTH_A(dataportWidth),        // DECIMAL
-  .WRITE_DATA_WIDTH_B(dataportWidth),        // DECIMAL
-  .WRITE_MODE_A("no_change"),     // String
-  .WRITE_MODE_B("no_change")      // String
-)
-columnbuffer1 (
-  .dbiterra(),                     // 1-bit output: Status signal to indicate double bit error occurrence
-                                   // on the data output of port A.
-
-  .dbiterrb(),                     // 1-bit output: Status signal to indicate double bit error occurrence
-                                   // on the data output of port A.
-
-  .douta(readportA1),              // READ_DATA_WIDTH_A-bit output: Data output for port A read operations.
-  .doutb(readportA2),              // READ_DATA_WIDTH_B-bit output: Data output for port B read operations.
-  .sbiterra(),                     // 1-bit output: Status signal to indicate single bit error occurrence
-                                   // on the data output of port A.
-
-  .sbiterrb(),                     // 1-bit output: Status signal to indicate single bit error occurrence
-                                   // on the data output of port B.
-
-  .addra(addressportA1),           // ADDR_WIDTH_A-bit input: Address for port A write and read operations.
-  .addrb(addressportA2),           // ADDR_WIDTH_B-bit input: Address for port B write and read operations.
-  .clka(clk),                      // 1-bit input: Clock signal for port A. Also clocks port B when
-                                   // parameter CLOCKING_MODE is "common_clock".
-
-  .clkb(clk),                      // 1-bit input: Clock signal for port B when parameter CLOCKING_MODE is
-                                   // "independent_clock". Unused when parameter CLOCKING_MODE is
-                                   // "common_clock".
-
-  .dina(writeportA1),            // WRITE_DATA_WIDTH_A-bit input: Data input for port A write operations.
-  .dinb(writeportA2),            // WRITE_DATA_WIDTH_B-bit input: Data input for port B write operations.
-
-  .ena(enableA),                   // 1-bit input: Memory enable signal for port A. Must be high on clock
-                                   // cycles when read or write operations are initiated. Pipelined
-                                   // internally.
-
-  .enb(enableA),                   // 1-bit input: Memory enable signal for port B. Must be high on clock
-                                   // cycles when read or write operations are initiated. Pipelined
-                                   // internally.
-
-  .injectdbiterra(1'b0), // 1-bit input: Controls double bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectdbiterrb(1'b0), // 1-bit input: Controls double bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectsbiterra(1'b0), // 1-bit input: Controls single bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectsbiterrb(1'b0),           // 1-bit input: Controls single bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .regcea(1'b1),                  // 1-bit input: Clock Enable for the last register stage on the output
-                                  // data path.
-
-  .regceb(1'b1),                   // 1-bit input: Clock Enable for the last register stage on the output
-                                   // data path.
-
-  .rsta(rst),                      // 1-bit input: Reset signal for the final port A output register stage.
-                                   // Synchronously resets output port douta to the value specified by
-                                   // parameter READ_RESET_VALUE_A.
-
-  .rstb(rst),                       // 1-bit input: Reset signal for the final port B output register stage.
-                                   // Synchronously resets output port doutb to the value specified by
-                                   // parameter READ_RESET_VALUE_B.
-
-  .sleep(1'b0),                    // 1-bit input: sleep signal to enable the dynamic power saving feature.
-  .wea(writeEnableA1),                       // WRITE_DATA_WIDTH_A-bit input: Write enable vector for port A input
-                                   // data port dina. 1 bit wide when word-wide writes are used. In
-                                   // byte-wide write configurations, each bit controls the writing one
-                                   // byte of dina to address addra. For example, to synchronously write
-                                   // only bits [15-8] of dina when WRITE_DATA_WIDTH_A is 32, wea would be
-                                   // 4'b0010.
-
-  .web(writeEnableA2)                        // WRITE_DATA_WIDTH_B-bit input: Write enable vector for port B input
-                                   // data port dinb. 1 bit wide when word-wide writes are used. In
-                                   // byte-wide write configurations, each bit controls the writing one
-                                   // byte of dinb to address addrb. For example, to synchronously write
-                                   // only bits [15-8] of dinb when WRITE_DATA_WIDTH_B is 32, web would be
-                                   // 4'b0010.
-
+indicebuffer u0 (
+	.data_a    (writeportA1),    //   input,  width = 10,    data_a.datain_a
+	.q_a       (readportA1),       //  output,  width = 10,       q_a.dataout_a
+	.data_b    (writeportA2),    //   input,  width = 10,    data_b.datain_b
+	.q_b       (readportA2),       //  output,  width = 10,       q_b.dataout_b
+	.address_a (addressportA1), //   input,  width = 15, address_a.address_a
+	.address_b (addressportA2), //   input,  width = 15, address_b.address_b
+	.wren_a    (writeEnableA1),    //   input,   width = 1,    wren_a.wren_a
+	.wren_b    (writeEnableA2),    //   input,   width = 1,    wren_b.wren_b
+	.clock     (clk)      //   input,   width = 1,     clock.clk
 );
 
-xpm_memory_tdpram #(
-  .ADDR_WIDTH_A(addressWidth),               // DECIMAL
-  .ADDR_WIDTH_B(addressWidth),               // DECIMAL
-  .AUTO_SLEEP_TIME(0),            // DECIMAL
-  .BYTE_WRITE_WIDTH_A(32),        // DECIMAL
-  .BYTE_WRITE_WIDTH_B(32),        // DECIMAL
-  .CASCADE_HEIGHT(0),             // DECIMAL
-  .CLOCKING_MODE("common_clock"), // String
-  .ECC_MODE("no_ecc"),            // String
-  .MEMORY_INIT_FILE("none"),      // String
-  .MEMORY_INIT_PARAM("0"),        // String
-  .MEMORY_OPTIMIZATION("true"),   // String
-  .MEMORY_PRIMITIVE("auto"),      // String
-  .MEMORY_SIZE(memorySize),             // DECIMAL
-  .MESSAGE_CONTROL(0),            // DECIMAL
-  .READ_DATA_WIDTH_A(dataportWidth),         // DECIMAL
-  .READ_DATA_WIDTH_B(dataportWidth),         // DECIMAL
-  .READ_LATENCY_A(2),             // DECIMAL
-  .READ_LATENCY_B(2),             // DECIMAL
-  .READ_RESET_VALUE_A("0"),       // String
-  .READ_RESET_VALUE_B("0"),       // String
-  .RST_MODE_A("SYNC"),            // String
-  .RST_MODE_B("SYNC"),            // String
-  .SIM_ASSERT_CHK(0),             // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
-  .USE_EMBEDDED_CONSTRAINT(0),    // DECIMAL
-  .USE_MEM_INIT(1),               // DECIMAL
-  .WAKEUP_TIME("disable_sleep"),  // String
-  .WRITE_DATA_WIDTH_A(dataportWidth),        // DECIMAL
-  .WRITE_DATA_WIDTH_B(dataportWidth),        // DECIMAL
-  .WRITE_MODE_A("no_change"),     // String
-  .WRITE_MODE_B("no_change")      // String
-)
-columnbuffer2 (
-  .dbiterra(),                     // 1-bit output: Status signal to indicate double bit error occurrence
-                                   // on the data output of port A.
-
-  .dbiterrb(),                     // 1-bit output: Status signal to indicate double bit error occurrence
-                                   // on the data output of port A.
-
-  .douta(readportB1),              // READ_DATA_WIDTH_A-bit output: Data output for port A read operations.
-  .doutb(readportB2),              // READ_DATA_WIDTH_B-bit output: Data output for port B read operations.
-  .sbiterra(),                     // 1-bit output: Status signal to indicate single bit error occurrence
-                                   // on the data output of port A.
-
-  .sbiterrb(),                     // 1-bit output: Status signal to indicate single bit error occurrence
-                                   // on the data output of port B.
-
-  .addra(addressportB1),           // ADDR_WIDTH_A-bit input: Address for port A write and read operations.
-  .addrb(addressportB2),           // ADDR_WIDTH_B-bit input: Address for port B write and read operations.
-  .clka(clk),                      // 1-bit input: Clock signal for port A. Also clocks port B when
-                                   // parameter CLOCKING_MODE is "common_clock".
-
-  .clkb(clk),                      // 1-bit input: Clock signal for port B when parameter CLOCKING_MODE is
-                                   // "independent_clock". Unused when parameter CLOCKING_MODE is
-                                   // "common_clock".
-
-  .dina(writeportB1),            // WRITE_DATA_WIDTH_A-bit input: Data input for port A write operations.
-  .dinb(writeportB2),            // WRITE_DATA_WIDTH_B-bit input: Data input for port B write operations.
-
-  .ena(enableB),                   // 1-bit input: Memory enable signal for port A. Must be high on clock
-                                   // cycles when read or write operations are initiated. Pipelined
-                                   // internally.
-
-  .enb(enableB),                   // 1-bit input: Memory enable signal for port B. Must be high on clock
-                                   // cycles when read or write operations are initiated. Pipelined
-                                   // internally.
-
-  .injectdbiterra(1'b0), // 1-bit input: Controls double bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectdbiterrb(1'b0), // 1-bit input: Controls double bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectsbiterra(1'b0), // 1-bit input: Controls single bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .injectsbiterrb(1'b0),           // 1-bit input: Controls single bit error injection on input data when
-                                   // ECC enabled (Error injection capability is not available in
-                                   // "decode_only" mode).
-
-  .regcea(1'b1),                  // 1-bit input: Clock Enable for the last register stage on the output
-                                  // data path.
-
-  .regceb(1'b1),                   // 1-bit input: Clock Enable for the last register stage on the output
-                                   // data path.
-
-  .rsta(rst),                      // 1-bit input: Reset signal for the final port A output register stage.
-                                   // Synchronously resets output port douta to the value specified by
-                                   // parameter READ_RESET_VALUE_A.
-
-  .rstb(rst),                       // 1-bit input: Reset signal for the final port B output register stage.
-                                   // Synchronously resets output port doutb to the value specified by
-                                   // parameter READ_RESET_VALUE_B.
-
-  .sleep(1'b0),                    // 1-bit input: sleep signal to enable the dynamic power saving feature.
-  .wea(writeEnableB1),                       // WRITE_DATA_WIDTH_A-bit input: Write enable vector for port A input
-                                   // data port dina. 1 bit wide when word-wide writes are used. In
-                                   // byte-wide write configurations, each bit controls the writing one
-                                   // byte of dina to address addra. For example, to synchronously write
-                                   // only bits [15-8] of dina when WRITE_DATA_WIDTH_A is 32, wea would be
-                                   // 4'b0010.
-
-  .web(writeEnableB2)                        // WRITE_DATA_WIDTH_B-bit input: Write enable vector for port B input
-                                   // data port dinb. 1 bit wide when word-wide writes are used. In
-                                   // byte-wide write configurations, each bit controls the writing one
-                                   // byte of dinb to address addrb. For example, to synchronously write
-                                   // only bits [15-8] of dinb when WRITE_DATA_WIDTH_B is 32, web would be
-                                   // 4'b0010.
-
+indicebuffer u1 (
+	.data_a    (writeportB1),    //   input,  width = 10,    data_a.datain_a
+	.q_a       (readportB1),       //  output,  width = 10,       q_a.dataout_a
+	.data_b    (writeportB2),    //   input,  width = 10,    data_b.datain_b
+	.q_b       (readportB2),       //  output,  width = 10,       q_b.dataout_b
+	.address_a (addressportB1), //   input,  width = 15, address_a.address_a
+	.address_b (addressportB2), //   input,  width = 15, address_b.address_b
+	.wren_a    (writeEnableB1),    //   input,   width = 1,    wren_a.wren_a
+	.wren_b    (writeEnableB2),    //   input,   width = 1,    wren_b.wren_b
+	.clock     (clk)      //   input,   width = 1,     clock.clk
 );
+
+
+
+
+
 endmodule

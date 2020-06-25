@@ -28,8 +28,8 @@ generate
 	    (
     		.clk(clk), // system clock 
     		.rst(rst),  // system rst
-    		.z(inputArray[pactivation*(i+1) -1: pactivation*i]),  // input value Z
-    		.a(outputArray[pactivation*(i+1) -1: pactivation*i])
+    		.z(inputArray[dataWidth*(i+1) -1: dataWidth*i]),  // input value Z
+    		.a(outputArray[dataWidth*(i+1) -1: dataWidth*i])
     	); // output activation A
 
 	end
